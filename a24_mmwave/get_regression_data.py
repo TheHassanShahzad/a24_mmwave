@@ -1,93 +1,86 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
-import time
-import matplotlib.pyplot as plt
+import numpy as np
 
-
-class PWMToVelocityMapper(Node):
+class MotorCalibrationNode(Node):
     def __init__(self):
-        super().__init__('pwm_to_velocity_mapper')
+        super().__init__("motor_calibration")
         
-        # Publisher and Subscriber
-        self.pub = self.create_publisher(Float64MultiArray, '/wheel_velocities', 10)
-        self.sub = self.create_subscription(Float64MultiArray, '/state_feedback', self.feedback_callback, 10)
+        # Publishers and subscribers
+        self.pub = self.create_publisher(Float64MultiArray, "/wheel_velocities", 10)
+        self.sub = self.create_subscription(Float64MultiArray, "/state_feedback", self.state_feedback_callback, 10)
         
-        # Variables for PWM and velocity mapping
-        self.current_pwm = -250
+        # Parameters
+        self.pwm = -250  # Initial PWM value
+        self.pwm_step = 10
         self.max_pwm = 250
-        self.step = 10
-        self.duration = 5  # seconds to wait per PWM
-        self.angular_velocities = []  # Store angular velocity readings
-        self.pwm_values = []  # Store corresponding PWM values
+        self.samples_per_pwm = 50  # Number of callbacks to wait for
+        self.recorded_data = []  # 2D list to store final velocities [vel_r, vel_l]
         
-        # Temporary storage for feedback
-        self.latest_feedback = [0.0, 0.0]
-        self.feedback_received = False
-
-        # Start the process
-        self.start_pwm_test()
-
-    def feedback_callback(self, msg):
-        # Extract angular velocities for the two wheels
-        self.latest_feedback = msg.data[1::2]  # Assuming [pos_r, vel_r, pos_l, vel_l]
-        self.feedback_received = True
-
-    def start_pwm_test(self):
-        while self.current_pwm <= self.max_pwm:
-            self.send_pwm_command(self.current_pwm)
-            self.get_logger().info(f"Testing PWM: {self.current_pwm}")
-            
-            # Wait for the system to stabilize
-            time.sleep(self.duration)
-            
-            # Record feedback
-            if self.feedback_received:
-                self.pwm_values.append(self.current_pwm)
-                self.angular_velocities.append(self.latest_feedback.copy())
-                self.get_logger().info(f"Recorded Velocities: {self.latest_feedback}")
-            
-            # Increment PWM
-            self.current_pwm += self.step
-
-        # Stop the robot and plot the results
-        self.send_pwm_command(0)
-        self.plot_results()
-
-    def send_pwm_command(self, pwm_value):
+        # Recording
+        self.current_samples = []
+        self.callback_count = 0
+        
+        # Timer to publish PWM commands
+        self.timer = self.create_timer(0.1, self.publish_pwm_command)  # 10 Hz
+    
+    def publish_pwm_command(self):
+        # Publish the current PWM to both wheels
         msg = Float64MultiArray()
-        msg.data = [pwm_value, pwm_value]
+        msg.data = [float(self.pwm), float(self.pwm)]
         self.pub.publish(msg)
-
-    def plot_results(self):
-        # Extract individual wheel velocities
-        vel_r = [vel[0] for vel in self.angular_velocities]
-        vel_l = [vel[1] for vel in self.angular_velocities]
+        self.get_logger().info(f"Publishing PWM: {self.pwm}")
+    
+    def state_feedback_callback(self, msg):
+        # Record state feedback
+        self.callback_count += 1
         
-        # Plot data
-        plt.figure()
-        plt.plot(self.pwm_values, vel_r, label='Right Wheel')
-        plt.plot(self.pwm_values, vel_l, label='Left Wheel')
-        plt.title('PWM vs Angular Velocity')
-        plt.xlabel('PWM Value')
-        plt.ylabel('Angular Velocity (rad/s)')
-        plt.legend()
-        plt.grid()
-        plt.show()
+        # Extract angular velocities (assuming format: [pos_r, vel_r, pos_l, vel_l])
+        vel_r = msg.data[1]
+        vel_l = msg.data[3]
+        self.current_samples.append((vel_r, vel_l))
+        
+        # After enough samples, record the 50th callback data and update PWM
+        if self.callback_count >= self.samples_per_pwm:
+            final_vel_r, final_vel_l = self.current_samples[-1]
+            self.recorded_data.append([final_vel_r, final_vel_l])
+            
+            self.get_logger().info(f"Recorded Velocities: Right={final_vel_r}, Left={final_vel_l}")
+            
+            # Prepare for the next PWM value
+            self.callback_count = 0
+            self.current_samples = []
+            self.pwm += self.pwm_step
+            
+            # Stop if max PWM is reached
+            if self.pwm > self.max_pwm:
+                self.stop_recording()
+    
+    def stop_recording(self):
+        self.get_logger().info("Stopping recording...")
+        
+        # Publish [0, 0] to stop the motors
+        stop_msg = Float64MultiArray()
+        stop_msg.data = [0.0, 0.0]
+        self.pub.publish(stop_msg)
+        self.get_logger().info("Motors stopped.")
+        
+        # Print final recorded data
+        
+        print("\nFinal Recorded Data (Right and Left Wheel Velocities):")
+        for i, (vel_r, vel_l) in enumerate(self.recorded_data):
+            print(f"Step {i+1}: Right={vel_r}, Left={vel_l}")
+        
+        print(self.recorded_data)
 
-        # Print values for regression
-        print("PWM to Velocity Data:")
-        for pwm, vel in zip(self.pwm_values, self.angular_velocities):
-            print(f"PWM: {pwm}, Velocities: {vel}")
+        # Shutdown the node
+        rclpy.shutdown()
 
-
-def main(args=None):
-    rclpy.init(args=args)
-    node = PWMToVelocityMapper()
+def main():
+    rclpy.init()
+    node = MotorCalibrationNode()
     rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
