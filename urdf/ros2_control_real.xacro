@@ -4,8 +4,8 @@
     <ros2_control name="a24_mmwave_System" type="system">
         <hardware>
             <plugin>topic_based_ros2_control/TopicBasedSystem</plugin>
-            <param name="joint_commands_topic">/topic_based_joint_commands</param>
-            <param name="joint_states_topic">/topic_based_joint_states</param>
+            <param name="joint_commands_topic">/topic_commands_js</param>
+            <param name="joint_states_topic">/topic_states_js</param>
             <param name="sum_wrapped_joint_states">false</param>
             <param name="use_message_timestamp">true</param>
             <param name="trigger_joint_command_threshold">-1.0</param>

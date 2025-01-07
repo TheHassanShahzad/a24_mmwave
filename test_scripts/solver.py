@@ -40,6 +40,9 @@ def get_pwm(ang_vel_r, ang_vel_l):
     return [r_pwm, l_pwm]
 
 print(get_pwm(-10, -10))
+print(type(get_pwm(-10, -10)[0]))
+print(get_pwm(0.2857142857142857, 0.2857142857142857))
+print(type(get_pwm(0.2857142857142857, 0.2857142857142857)[0]))
 
 # print(solve_poly(-10, r_reverse_cof, r_reverse_clip))
 # print(solve_poly(10, r_forward_cof, r_forward_clip))

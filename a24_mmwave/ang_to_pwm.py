@@ -10,7 +10,7 @@ class PWMCalculatorNode(Node):
         # Subscription to ang_vel topic
         self.subscription = self.create_subscription(
             Float64MultiArray,
-            'ang_vel_topic',  # Replace with your actual topic name
+            '/topic_commands_float', 
             self.ang_vel_callback,
             10
         )
@@ -18,7 +18,7 @@ class PWMCalculatorNode(Node):
         # Publisher to pwm topic
         self.publisher = self.create_publisher(
             Float64MultiArray,
-            'pwm_topic',  # Replace with your actual topic name
+            '/pwm_topic',  # Replace with your actual topic name
             10
         )
 
@@ -27,9 +27,9 @@ class PWMCalculatorNode(Node):
         self.r_reverse_clip = -38
         self.r_forward_clip = 52
 
-        self.l_reverse_cof = [ 0.00052984,  0.19408175, -0.14836343]
+        self.l_reverse_cof = [ 5.29843271e-04,  1.85604262e-01, -1.66710749e+00]
         self.l_forward_cof = [-4.25785323e-04,  1.57314982e-01,  4.38386866e+00]
-        self.l_reverse_clip = -30
+        self.l_reverse_clip = -38
         self.l_forward_clip = 52
 
     def solve_poly(self, value, basic_cofs, offset):
@@ -56,7 +56,7 @@ class PWMCalculatorNode(Node):
         if l_pwm <= self.l_forward_clip and l_pwm >= self.l_reverse_clip:
             l_pwm = 0
 
-        return [r_pwm, l_pwm]
+        return [float(r_pwm), float(l_pwm)]
    
     def ang_vel_callback(self, msg):
 
@@ -75,7 +75,7 @@ class PWMCalculatorNode(Node):
         output_msg.data = self.get_pwm(ang_vel_r, ang_vel_l)
 
         self.publisher.publish(output_msg)
-        self.get_logger().info(f"Published pwm_r: {output_msg.data[0]}, pwm_l: {output_msg.data[1]}")
+        # self.get_logger().info(f"Published pwm_r: {output_msg.data[0]}, pwm_l: {output_msg.data[1]}")
 
 
 def main(args=None):

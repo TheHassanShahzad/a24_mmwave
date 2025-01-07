@@ -15,7 +15,7 @@ pwm = np.arange(-250, 251, 10)
 # Define dead zone boundaries for each motor
 dead_zone_R_min = -38  # Right motor reverse dead zone limit
 dead_zone_R_max = 52   # Right motor forward dead zone limit
-dead_zone_L_min = -30  # Left motor reverse dead zone limit
+dead_zone_L_min = -38  # Left motor reverse dead zone limit
 dead_zone_L_max = 52   # Left motor forward dead zone limit
 
 # Apply offsets for the right motor
