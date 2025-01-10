@@ -57,13 +57,22 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
-    # Add RViz2 node with the custom display configuration
-    rviz2 = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        arguments=['-d', rviz_config_file],
-        output='screen'
+    remapper_node = Node(
+        package='a24_mmwave',
+        executable='remapper',
+        output='screen',
+    )
+
+    translator_node = Node(
+        package='a24_mmwave',
+        executable='translator',
+        output='screen',
+    )
+
+    ang_to_pwm_node = Node(
+        package='a24_mmwave',
+        executable='ang_to_pwm',
+        output='screen',
     )
 
     return LaunchDescription([
@@ -71,5 +80,7 @@ def generate_launch_description():
         controller_manager,
         diff_drive_spawner,
         joint_broad_spawner,
-        rviz2
+        remapper_node,
+        translator_node,
+        ang_to_pwm_node,
     ])

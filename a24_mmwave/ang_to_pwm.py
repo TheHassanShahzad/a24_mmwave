@@ -68,14 +68,14 @@ class PWMCalculatorNode(Node):
         ang_vel_r = msg.data[0]
         ang_vel_l = msg.data[1]
 
-        self.get_logger().info(f"Received ang_vel_r: {ang_vel_r}, ang_vel_l: {ang_vel_l}")
+        # self.get_logger().info(f"Received ang_vel_r: {ang_vel_r}, ang_vel_l: {ang_vel_l}")
 
         # Prepare output message
         output_msg = Float64MultiArray()
         output_msg.data = self.get_pwm(ang_vel_r, ang_vel_l)
 
         self.publisher.publish(output_msg)
-        # self.get_logger().info(f"Published pwm_r: {output_msg.data[0]}, pwm_l: {output_msg.data[1]}")
+        self.get_logger().info(f"Published pwm_r: {output_msg.data[0]}, pwm_l: {output_msg.data[1]}")
 
 
 def main(args=None):
