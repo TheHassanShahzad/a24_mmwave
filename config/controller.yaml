@@ -25,7 +25,7 @@ diff_cont:
     enable_odom_tf: true
 
     
-    open_loop: true    
+    # open_loop: true    
 
     # wheels_per_side: x
     # wheel_separation_multiplier: x
