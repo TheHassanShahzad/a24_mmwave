@@ -71,7 +71,7 @@ def generate_launch_description():
 
     ang_to_pwm_node = Node(
         package='a24_mmwave',
-        executable='ang_to_pwm',
+        executable='linear_ang_to_pwm',
         output='screen',
     )
 

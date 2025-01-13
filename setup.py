@@ -44,7 +44,8 @@ setup(
     entry_points={
         'console_scripts': [
             'remapper = a24_mmwave.remapper:main',
-            'ang_to_pwm = a24_mmwave.ang_to_pwm:main',
+            'linear_ang_to_pwm = a24_mmwave.linear_ang_to_pwm:main',
+            'poly_ang_to_pwm = a24_mmwave.poly_ang_to_pwm:main',
             'translator = a24_mmwave.translator:main'
         ],
     },
