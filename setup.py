@@ -46,7 +46,8 @@ setup(
             'remapper = a24_mmwave.remapper:main',
             'linear_ang_to_pwm = a24_mmwave.linear_ang_to_pwm:main',
             'poly_ang_to_pwm = a24_mmwave.poly_ang_to_pwm:main',
-            'translator = a24_mmwave.translator:main'
+            'translator = a24_mmwave.translator:main',
+            'pcl_to_scan.py = a24_mmwave.pcl_to_scan:main'
         ],
     },
 )
